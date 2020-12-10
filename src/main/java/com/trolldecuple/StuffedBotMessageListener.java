@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -52,6 +53,7 @@ public class StuffedBotMessageListener extends ListenerAdapter {
 
                 String avatarUrl = target.getAvatarUrl();
                 String targetName = Objects.requireNonNull(event.getGuild().getMember(target)).getNickname();
+                Color mainRoleColor = Objects.requireNonNull(event.getGuild().getMember(target)).getColor();
 
                 if (avatarUrl != null) {
                     try {
@@ -96,9 +98,12 @@ public class StuffedBotMessageListener extends ListenerAdapter {
                     targetName = target.getName();
                 }
 
-                System.out.println("【 위장 완료 】 위장한 태그 : " + targetName + ", 위장 URL : " + avatarUrl);
+                System.out.println("【 위장 완료 】 위장한 태그 : " + targetName + ", 위장 URL : " + avatarUrl + ", 위장 컬러 : " + mainRoleColor);
+
+                if (mainRoleColor == null) Objects.requireNonNull(event.getGuild().getMember(jda.getSelfUser())).getRoles().get(0).getManager().setColor(null);
 
                 Objects.requireNonNull(event.getGuild().getMember(jda.getSelfUser())).modifyNickname(targetName).queue();
+                Objects.requireNonNull(event.getGuild().getMember(jda.getSelfUser())).getRoles().get(0).getManager().setColor(mainRoleColor);
                 message.delete().queue();
 
             }

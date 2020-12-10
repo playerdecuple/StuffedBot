@@ -5,8 +5,7 @@
 1. git을 이용하여 클론해 줍니다. (`git clone https://github.com/playerdecuple/StuffedBot.git`)
 2. 클론한 프로젝트를 InteliJ로 엽니다.
 3. `TOKEN` 항목에 봇의 토큰을 넣습니다. (`OWNER` 항목은 ID를 넣으면 됩니다, 그런데 이거 수정 안해도 괜찮습니다.)
-4. 프로젝트 폴더가 `D:\StuffedBot\`인 경우 하위 디렉토리로 `tmp`를 만들어 줍니다. (ex. `D:\StuffedBot\tmp\`)
-5. 빌드해 줍니다. 끝!
+4. 빌드해 줍니다. 끝!
 
 ## Use
 1. 자신의 서버에 초대합니다. 권한은 `관리자`여야 합니다.

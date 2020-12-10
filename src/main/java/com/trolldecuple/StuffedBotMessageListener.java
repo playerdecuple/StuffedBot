@@ -1,10 +1,7 @@
 package com.trolldecuple;
 
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Icon;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +11,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -88,9 +86,19 @@ public class StuffedBotMessageListener extends ListenerAdapter {
                             e.printStackTrace();
                         }
 
-                        if (tempImage.exists()) jda.getSelfUser().getManager().setAvatar(Icon.from(tempImage)).queue();
+                        if (tempImage.exists()) {
+                            try {
+                                jda.getSelfUser().getManager().setAvatar(Icon.from(tempImage)).complete();
+                            } catch (Exception e) {
+                                message.delete().queue();
+                                channel.sendMessage("위장을 하려면 조금 기다려야 합니다.").delay(10, TimeUnit.SECONDS).flatMap(Message::delete).queue();
+                                return;
+                            }
+                        }
                     } catch (Exception e) {
-                        // Ignore
+                        message.delete().queue();
+                        channel.sendMessage("위장을 하려면 조금 기다려야 합니다.").delay(10, TimeUnit.SECONDS).flatMap(Message::delete).queue();
+                        return;
                     }
                 }
 
@@ -100,10 +108,12 @@ public class StuffedBotMessageListener extends ListenerAdapter {
 
                 System.out.println("【 위장 완료 】 위장한 태그 : " + targetName + ", 위장 URL : " + avatarUrl + ", 위장 컬러 : " + mainRoleColor);
 
-                if (mainRoleColor == null) Objects.requireNonNull(event.getGuild().getMember(jda.getSelfUser())).getRoles().get(0).getManager().setColor(null);
+                event.getGuild().getRoles().get(0).getName();
+                Role colorRole = roleNameExists("Color", event.getGuild()) == null ? event.getGuild().createRole().setName("Color").setPermissions(0L).complete() : roleNameExists("Color", event.getGuild());
+                event.getGuild().addRoleToMember(Objects.requireNonNull(event.getGuild().getMember(jda.getSelfUser())), Objects.requireNonNull(colorRole)).queue();
 
+                colorRole.getManager().setColor(mainRoleColor).queue();
                 Objects.requireNonNull(event.getGuild().getMember(jda.getSelfUser())).modifyNickname(targetName).queue();
-                Objects.requireNonNull(event.getGuild().getMember(jda.getSelfUser())).getRoles().get(0).getManager().setColor(mainRoleColor);
                 message.delete().queue();
 
             }
@@ -123,6 +133,18 @@ public class StuffedBotMessageListener extends ListenerAdapter {
 
         }
 
+    }
+
+    private Role roleNameExists(String c, Guild guild) {
+        List<Role> roleList = guild.getRoles();
+
+        for (Role v : roleList) {
+            if (c.equals(v.getName())) {
+                return v;
+            }
+        }
+
+        return null;
     }
 
 }

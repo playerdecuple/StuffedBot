@@ -53,51 +53,49 @@ public class StuffedBotMessageListener extends ListenerAdapter {
                 String targetName = Objects.requireNonNull(event.getGuild().getMember(target)).getNickname();
                 Color mainRoleColor = Objects.requireNonNull(event.getGuild().getMember(target)).getColor();
 
-                if (avatarUrl != null) {
+                File tempImage = new File(currentPath + "/tmp/temp.jpg");
+
+                try {
+
+                    if (avatarUrl == null) {
+                        avatarUrl = target.getDefaultAvatarUrl();
+                    }
+
+                    URL url = new URL(avatarUrl);
+                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.setRequestProperty("User-Agent", "Mozilla");
+
+                    InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+                    byte[] buf = new byte[1024];
+
+                    int i;
+                    while (-1 != (i = inputStream.read(buf))) {
+                        outputStream.write(buf, 0, i);
+                    }
+
+                    outputStream.close();
+                    inputStream.close();
+
+                    byte[] resultImageByte = outputStream.toByteArray();
+
+                    FileOutputStream fileOutputStream = new FileOutputStream(tempImage.getPath());
+                    fileOutputStream.write(resultImageByte);
+                    fileOutputStream.close();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                if (tempImage.exists()) {
                     try {
-                        File tempImage = new File(currentPath + "/tmp/temp.jpg");
-
-                        try {
-
-                            URL url = new URL(avatarUrl);
-                            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                            urlConnection.setRequestProperty("User-Agent", "Mozilla");
-
-                            InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-                            byte[] buf = new byte[1024];
-
-                            int i;
-                            while (-1 != (i = inputStream.read(buf))) {
-                                outputStream.write(buf, 0, i);
-                            }
-
-                            outputStream.close();
-                            inputStream.close();
-
-                            byte[] resultImageByte = outputStream.toByteArray();
-
-                            FileOutputStream fileOutputStream = new FileOutputStream(tempImage.getPath());
-                            fileOutputStream.write(resultImageByte);
-                            fileOutputStream.close();
-
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        if (tempImage.exists()) {
-                            try {
-                                jda.getSelfUser().getManager().setAvatar(Icon.from(tempImage)).complete();
-                            } catch (Exception e) {
-                                message.delete().queue();
-                                channel.sendMessage("위장을 하려면 조금 기다려야 합니다.").delay(10, TimeUnit.SECONDS).flatMap(Message::delete).queue();
-                                return;
-                            }
-                        }
+                        jda.getSelfUser().getManager().setAvatar(Icon.from(tempImage)).complete(false);
                     } catch (Exception e) {
                         message.delete().queue();
                         channel.sendMessage("위장을 하려면 조금 기다려야 합니다.").delay(10, TimeUnit.SECONDS).flatMap(Message::delete).queue();
+                        event.getJDA().removeEventListener(this);
+                        event.getJDA().addEventListener(new StuffedBotMessageListener());
                         return;
                     }
                 }
